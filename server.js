@@ -1,38 +1,12 @@
 const express = require('express')
 const app = express();
-const client = require('./routes/');
-const SQL = require('./routes');
+app.use(express.urlencoded({extended:false}));
+const client = require('./db');
 const fs = require('fs');
 
 app.get('/', async(req, res, next) => {
-  const response = await(client.query(`
-  SELECT *
-  FROM bookmark
-  `))
-  const bookmarks = response.rows;
-  res.send(`
-  <html>
-    <head>
-    <title>Bookmarkers</title>
-    </head>
-    <body>
-      <h1>Bookmarkers</h1>
-      <ul>
-        ${bookmarks.map( bookmark => {
-            return `
-            <li>
-              ${bookmark.name}
-            </li>
-            `
-        }).join(' ')
-
-        }
-      </ul>
-    </body>
-  </html>
-  `)
+  res.redirect('/bookmarks')
 })
- 
 
 const port = (process.env.PORT || 3000);
 
@@ -49,25 +23,14 @@ const readFile = (path)=> {
     });
   };
 
-app.use('/public', express.static('assets'));
-app.use(express.urlencoded({extended:false}));
-
-app.get('/', async(req, res, next) =>{
-  try{
-    await res.send('hello')
-  }
-  catch(ex){
-    next(ex)
-  }
-})
-
+app.use('/bookmarks', require('./routes/bookmarks'));
 
 
 app.listen(port, async() => {
   try {
     console.log(`listening on ${port}`);
     await client.connect();
-    const SQL = await readFile('./routes/sql_db');
+    const SQL = await readFile('./sql_db');
     await client.query(SQL);
   }
   catch(ex) {
